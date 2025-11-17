@@ -1,0 +1,91 @@
+import copy
+
+GOAL_STATE = [
+    [1, 2, 3],
+    [4, 5, 6],
+    [7, 8, 0]
+]
+
+def misplaced_tiles(state):
+    count = 0
+    for i in range(3):
+        for j in range(3):
+            if state[i][j] != 0 and state[i][j] != GOAL_STATE[i][j]:
+                count += 1
+    return count
+
+def find_blank(state):
+    for i in range(3):
+        for j in range(3):
+            if state[i][j] == 0:
+                return i, j
+
+def get_neighbors(state):
+    neighbors = []
+    x, y = find_blank(state)
+    moves = [(-1,0),(1,0),(0,-1),(0,1)]
+
+    for dx, dy in moves:
+        nx, ny = x + dx, y + dy
+        if 0 <= nx < 3 and 0 <= ny < 3:
+            new_state = copy.deepcopy(state)
+            new_state[x][y], new_state[nx][ny] = new_state[nx][ny], new_state[x][y]
+            neighbors.append(new_state)
+
+    return neighbors
+
+def hill_climbing(initial_state):
+    current = initial_state
+    current_score = misplaced_tiles(current)
+
+    while True:
+        neighbors = get_neighbors(current)
+        neighbor_scores = [(misplaced_tiles(n), n) for n in neighbors]
+        best_score, best_neighbor = min(neighbor_scores, key=lambda x: x[0])
+
+        if best_score >= current_score:
+            break
+
+        current, current_score = best_neighbor, best_score
+        print(f"Current state with score {current_score}:")
+        print_state(current)
+
+        if current_score == 0:
+            print("Goal reached!")
+            return current
+
+    print("Reached local maximum (no better neighbors).")
+    return current
+
+def print_state(state):
+    for row in state:
+        print(' '.join(str(x) if x != 0 else ' ' for x in row))
+    print()
+
+initial_state = [
+    [1, 2, 3],
+    [4, 0, 6],
+    [7, 5, 8]
+]
+
+print("Initial state:")
+print_state(initial_state)
+hill_climbing(initial_state)
+     
+Initial state:
+1 2 3
+4   6
+7 5 8
+
+Current state with score 1:
+1 2 3
+4 5 6
+7   8
+
+Current state with score 0:
+1 2 3
+4 5 6
+7 8  
+
+Goal reached!
+[[1, 2, 3], [4, 5, 6], [7, 8, 0]]
